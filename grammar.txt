@@ -1,0 +1,22 @@
+P -> E
+E -> id(E)
+E -> str
+E -> id = E
+E -> E + E
+E -> E - E
+E -> E * E
+E -> E / E
+E -> int
+E -> (E)
+
+
+
+
+print("hello world!")
+
+x = 1 + 1
+
+
+
+
+
