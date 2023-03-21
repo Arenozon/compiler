@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-	
+#include <string.h>
+
 typedef enum {
 	TOKEN_MULTIPLY,
 	TOKEN_PLUS,
@@ -8,11 +9,13 @@ typedef enum {
 	TOKEN_DIVIDE,
 	TOKEN_INT,
 	TOKEN_ID,
+	TOKEN_TYPE,
 	LEFT_CURLY_BRACKET,
 	RIGHT_CURLY_BRACKET,
-	SEMI_COLON,
+	TOKEN_SEMI_COLON,
 	TOKEN_LPAREN,
 	TOKEN_RPAREN,
+	TOKEN_ASSIGN,
 	TOKEN_EOF,
 	ERROR
 } token_t;
@@ -21,6 +24,9 @@ token_t scan_token(FILE *fp);
 int isNumber(char c);
 int isLetter(char c);
 int parse_P();
+int parse_S();
+int parse_assignment();
+int parse_declaration();
 int parse_E();
 int parse_T();
 int parse_E_prime();
@@ -75,11 +81,13 @@ token_t scan_token(FILE *fp) {
 			case '}':
 				return RIGHT_CURLY_BRACKET;
 			case ';':
-				return SEMI_COLON;
+				return TOKEN_SEMI_COLON;
 			case '(':
 				return TOKEN_LPAREN;
 			case ')':
 				return TOKEN_RPAREN;
+			case '=':
+				return TOKEN_ASSIGN;
 			case EOF:
 				return TOKEN_EOF;
 		}
@@ -91,10 +99,19 @@ token_t scan_token(FILE *fp) {
 			return TOKEN_INT;
 		}
 		if (isLetter(c)) {
+			char *word = malloc(255);
+			int i = 0;
 			do {
+				word[i] = c;
+				i++;
 				c = fgetc(fp);
 			} while (isLetter(c) || isNumber(c));
 			ungetc(c, fp);
+			if (strcmp(word, "int") == 0) {
+				free(word);
+				return TOKEN_TYPE;
+			}
+			free(word);
 			return TOKEN_ID;
 		}
 	} while (c == ' ' || c == '\n');
@@ -131,7 +148,33 @@ int expect_token(token_t t) {
 }
 
 int parse_P() {
-	return parse_E() && expect_token(TOKEN_EOF);
+	return parse_S() && expect_token(TOKEN_EOF);
+}
+
+int parse_S() {
+	token_t t = scan_token(fp);
+
+	if (t == TOKEN_TYPE) {
+		putback_token(t);
+
+		return parse_declaration();
+	} else if (t == TOKEN_ID) {
+		putback_token(t);
+
+		return parse_assignment();
+	} else {
+		printf("parse error: unexpected token %d\n", t);
+		
+		return 0;
+	}
+}
+
+int parse_declaration() {
+	return expect_token(TOKEN_TYPE) && expect_token(TOKEN_ID) && expect_token(TOKEN_SEMI_COLON);
+}
+
+int parse_assignment() {
+	return expect_token(TOKEN_ID) && expect_token(TOKEN_ASSIGN) && parse_E() && expect_token(TOKEN_SEMI_COLON);
 }
 
 int parse_E() {
