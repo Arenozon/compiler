@@ -1,5 +1,9 @@
-program = statement {statement} ;
-statement = declaration | assignment ;
+program = statements ;
+statements = statement {statement} ;
+statement = declaration | assignment | definition ;
+definition = "func" id "(" parameters ")" block ;
+parameters = type id {"," type id} ;
+block = "{" statements "}" ;
 declaration = type id ";" ;
 type = "int" ;
 assignment = id "=" expression ";" ;
@@ -9,7 +13,7 @@ term = factor term' ;
 term' = "*" factor term' | "/" factor term' | epsilon;
 factor = "(" expression ")" | id | int ;
 
-int main() {
+define main() {
 	int x;
 
 	x = 0;
