@@ -1,22 +1,28 @@
-P -> E
-E -> id(E)
-E -> str
-E -> id = E
-E -> E + E
-E -> E - E
-E -> E * E
-E -> E / E
-E -> int
-E -> (E)
+program = statement {statement} ;
+statement = declaration | assignment ;
+declaration = type id ";" ;
+type = "int" ;
+assignment = id "=" expression ";" ;
+expression = term expression' ;
+expression' = "+" term expression' | "-" term expression' | epsilon ;
+term = factor term' ;
+term' = "*" factor term' | "/" factor term' | epsilon;
+factor = "(" expression ")" | id | int ;
 
+int main() {
+	int x;
 
+	x = 0;
 
+	if (x == 0) {
+		x = x + 1;
+	}
 
-print("hello world!")
+	while (x != 0) {
+		x = x - 1;
+	}
 
-x = 1 + 1
+	square(x);
 
-
-
-
-
+	return x;
+}

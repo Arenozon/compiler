@@ -37,17 +37,7 @@ FILE *fp;
 token_t putback = -1;
 
 int main(int argc, char *argv[]) {
-	//token_t token;
-
 	fp = fopen(argv[1], "r");
-	/*while ((token = scan_token(fp)) != TOKEN_EOF) {
-		if (token != ERROR)
-			printf("%d\n", token);
-		else {
-			printf("Error");
-			return 1;
-		}	
-	}*/
 	if (parse_P())
 		printf("Successfully parsed\n");
 	else
@@ -148,7 +138,19 @@ int expect_token(token_t t) {
 }
 
 int parse_P() {
-	return parse_S() && expect_token(TOKEN_EOF);
+	token_t t;
+	int parsed;
+
+	if ((parsed = parse_S())) {
+		while ((t = scan_token(fp)) != TOKEN_EOF && parsed) {
+			putback_token(t);
+			parsed = parse_S();
+		}
+
+		return parsed;
+	}
+
+	return 0;
 }
 
 int parse_S() {
