@@ -1,17 +1,6 @@
-func main() {
-	int apple;
-	apple = 31 + 3;
-	apple = 31 + 3;
-	apple = 31 + 3;
-	apple = 31 + 3;
-	apple = 31 + 3;
-	apple = 31 + 3;
+hello = 1;
+func hello(int x, int y) {
+	if (x == y) {
+		x = y;
+	}
 }
-
-func notmain(int x, int y) {
-	int orange;
-	orange = x + y;
-}
-
-int banana;
-banana = x * y + 7 / 33;

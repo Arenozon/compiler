@@ -1,11 +1,14 @@
 program = statements ;
 statements = statement {statement} ;
-statement = declaration | assignment | definition ;
+statement = declaration | assignment | definition | conditional ;
+conditional = "if" "(" condition ")" block {"elif" "(" condition ")" block} ["else" block] ;
+condition = expression logic expression ;
+logic = "&&" | "||" | "==" | "!=" | ">" | "<" | ">=" | "<=" ;
 definition = "func" id "(" parameters ")" block ;
 parameters = type id {"," type id} ;
 block = "{" statements "}" ;
 declaration = type id ";" ;
-type = "int" ;
+type = "i64" ;
 assignment = id "=" expression ";" ;
 expression = term expression' ;
 expression' = "+" term expression' | "-" term expression' | epsilon ;
@@ -13,8 +16,8 @@ term = factor term' ;
 term' = "*" factor term' | "/" factor term' | epsilon;
 factor = "(" expression ")" | id | int ;
 
-define main() {
-	int x;
+func main() {
+	i64 x;
 
 	x = 0;
 

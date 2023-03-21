@@ -18,6 +18,19 @@ typedef enum {
 	TOKEN_RBRACE,
 	TOKEN_ASSIGN,
 	TOKEN_COMMA,
+	TOKEN_IF,
+	TOKEN_ELIF,
+	TOKEN_ELSE,
+	TOKEN_LOGIC,
+	TOKEN_AND,
+	TOKEN_OR,
+	TOKEN_EQUAL,
+	TOKEN_NOT_EQUAL,
+	TOKEN_GT,
+	TOKEN_LT,
+	TOKEN_GE,
+	TOKEN_LE,
+	TOKEN_NOT,
 	TOKEN_EOF,
 	ERROR
 } token_t;
@@ -28,6 +41,9 @@ int isLetter(char c);
 int parse_P();
 int parse_statements();
 int parse_statement();
+int parse_conditional();
+int parse_condition();
+int parse_logic();
 int parse_assignment();
 int parse_declaration();
 int parse_definition();
@@ -84,9 +100,45 @@ token_t scan_token(FILE *fp) {
 			case '}':
 				return TOKEN_RBRACE;
 			case '=':
-				return TOKEN_ASSIGN;
+				if ((c = fgetc(fp)) == '=')
+					return TOKEN_EQUAL;
+				else {
+					ungetc(c, fp);
+					return TOKEN_ASSIGN;
+				}
 			case ',':
 				return TOKEN_COMMA;
+			case '&':
+				if (fgetc(fp) == '&')
+					return TOKEN_AND;
+				else
+					return ERROR;
+			case '|':
+				if (fgetc(fp) == '|')
+					return TOKEN_OR;
+				else
+					return ERROR;
+			case '!':
+				if (fgetc(fp) == '=')
+					return TOKEN_NOT_EQUAL;
+				else {
+					ungetc(c, fp);
+					return TOKEN_NOT;
+				}
+			case '>':
+				if ((c = fgetc(fp)) == '=')
+					return TOKEN_GE;
+				else {
+					ungetc(c, fp);
+					return TOKEN_GT;
+				}
+			case '<':
+				if ((c = fgetc(fp)) == '=')
+					return TOKEN_LE;
+				else {
+					ungetc(c, fp);
+					return TOKEN_LT;
+				}
 			case EOF:
 				return TOKEN_EOF;
 		}
@@ -113,6 +165,15 @@ token_t scan_token(FILE *fp) {
 			} else if (strcmp(word, "func") == 0) {
 				free(word);
 				return TOKEN_FUNC;
+			} else if (strcmp(word, "if") == 0) {
+				free(word);
+				return TOKEN_IF;
+			} else if (strcmp(word, "elif") == 0) {
+				free(word);
+				return TOKEN_ELIF;
+			} else if (strcmp(word, "else") == 0) {
+				free(word);
+				return TOKEN_ELSE;
 			}
 			free(word);
 			return TOKEN_ID;
@@ -186,11 +247,53 @@ int parse_statement() {
 		putback_token(t);
 
 		return parse_definition();
+	} else if (t == TOKEN_IF) {
+		putback_token(t);
+
+		return parse_conditional();
 	} else {
 		fprintf(stderr, "parse error in parse_statement: unexpected token %d\n", t);
 		
 		return 0;
 	}
+}
+
+int parse_conditional() {
+	token_t t;
+	int parsed;
+
+	if ((parsed = (expect_token(TOKEN_IF) && expect_token(TOKEN_LPAREN) && parse_condition() && expect_token(TOKEN_RPAREN)
+	&& parse_block()))) {
+		while ((t = scan_token(fp)) == TOKEN_ELIF && parsed) {
+			parsed = (expect_token(TOKEN_LPAREN) && parse_condition() 
+				&& expect_token(TOKEN_RPAREN)) && parse_block();
+		}
+		putback_token(t);
+		if ((t = scan_token(fp)) == TOKEN_ELSE && parsed) {
+			parsed = (expect_token(TOKEN_LPAREN) && parse_condition() 
+				&& expect_token(TOKEN_RPAREN) && parse_block());
+		} else 
+			putback_token(t);
+
+		return parsed;
+	}
+
+	return 0;
+}
+
+int parse_condition() {
+	return parse_E() && parse_logic() && parse_E();
+}
+
+int parse_logic() {
+	token_t t;
+
+	if ((t = scan_token(fp)) == TOKEN_AND || t == TOKEN_OR || t == TOKEN_EQUAL || t == TOKEN_NOT_EQUAL || t == TOKEN_GT 
+		|| t == TOKEN_LT || t == TOKEN_GE || t == TOKEN_LE) {
+		return 1;
+	}
+
+	return 0;
 }
 
 int parse_declaration() {
