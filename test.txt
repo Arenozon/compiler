@@ -1,6 +1,16 @@
 hello = 1;
-func hello(int x, int y) {
+func hello(i64 x, i64 y) {
 	if (x == y) {
 		x = y;
+	} elif (x >= y) {
+		x = x - 1;
+	} elif (x <= y) {
+		x = x + 1;
+	} else {
+		x = 0;
 	}
+}
+
+while (something != something) {
+	i64 somethingelse;
 }

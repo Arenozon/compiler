@@ -21,6 +21,7 @@ typedef enum {
 	TOKEN_IF,
 	TOKEN_ELIF,
 	TOKEN_ELSE,
+	TOKEN_WHILE,
 	TOKEN_LOGIC,
 	TOKEN_AND,
 	TOKEN_OR,
@@ -41,6 +42,7 @@ int isLetter(char c);
 int parse_P();
 int parse_statements();
 int parse_statement();
+int parse_loop();
 int parse_conditional();
 int parse_condition();
 int parse_logic();
@@ -159,7 +161,7 @@ token_t scan_token(FILE *fp) {
 			} while (isLetter(c) || isNumber(c));
 			ungetc(c, fp);
 			word[i] = '\0';
-			if (strcmp(word, "int") == 0) {
+			if (strcmp(word, "i64") == 0) {
 				free(word);
 				return TOKEN_TYPE;
 			} else if (strcmp(word, "func") == 0) {
@@ -174,6 +176,9 @@ token_t scan_token(FILE *fp) {
 			} else if (strcmp(word, "else") == 0) {
 				free(word);
 				return TOKEN_ELSE;
+			} else if (strcmp(word, "while") == 0) {
+				free(word);
+				return TOKEN_WHILE;
 			}
 			free(word);
 			return TOKEN_ID;
@@ -251,11 +256,19 @@ int parse_statement() {
 		putback_token(t);
 
 		return parse_conditional();
+	} else if (t == TOKEN_WHILE) {
+		putback_token(t);
+
+		return parse_loop();
 	} else {
 		fprintf(stderr, "parse error in parse_statement: unexpected token %d\n", t);
 		
 		return 0;
 	}
+}
+
+int parse_loop() {
+	return expect_token(TOKEN_WHILE) && expect_token(TOKEN_LPAREN) && parse_condition() & expect_token(TOKEN_RPAREN) && parse_block();
 }
 
 int parse_conditional() {
@@ -270,8 +283,7 @@ int parse_conditional() {
 		}
 		putback_token(t);
 		if ((t = scan_token(fp)) == TOKEN_ELSE && parsed) {
-			parsed = (expect_token(TOKEN_LPAREN) && parse_condition() 
-				&& expect_token(TOKEN_RPAREN) && parse_block());
+			parsed = parse_block();
 		} else 
 			putback_token(t);
 
