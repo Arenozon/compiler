@@ -32,6 +32,7 @@ typedef enum {
 	TOKEN_GE,
 	TOKEN_LE,
 	TOKEN_NOT,
+	TOKEN_CALL,
 	TOKEN_EOF,
 	ERROR
 } token_t;
@@ -56,6 +57,8 @@ int parse_E();
 int parse_T();
 int parse_E_prime();
 int parse_F();
+int parse_call();
+int parse_arguments();
 int parse_T_prime();
 
 FILE *fp;
@@ -141,6 +144,8 @@ token_t scan_token(FILE *fp) {
 					ungetc(c, fp);
 					return TOKEN_LT;
 				}
+			case '$':
+				return TOKEN_CALL;
 			case EOF:
 				return TOKEN_EOF;
 		}
@@ -260,6 +265,12 @@ int parse_statement() {
 		putback_token(t);
 
 		return parse_loop();
+	} else if (t == TOKEN_LPAREN || t == TOKEN_ID
+	|| t == TOKEN_INT || t == TOKEN_CALL) {
+		putback_token(t);
+
+		return parse_E() 
+		&& expect_token(TOKEN_SEMI_COLON);
 	} else {
 		fprintf(stderr, "parse error in parse_statement: unexpected token %d\n", t);
 		
@@ -376,10 +387,38 @@ int parse_F() {
 		return parse_E() && expect_token(TOKEN_RPAREN);
 	} else if (t == TOKEN_INT || t == TOKEN_ID) {
 		return 1;
+	} else if (t == TOKEN_CALL) {
+		putback_token(t);
+
+		return parse_call();
 	} else {
 		printf("parse error: unexpected token %d\n", t);
 		return 0;
 	}
+}
+
+int parse_call() {
+	return expect_token(TOKEN_CALL) && expect_token(TOKEN_ID) 
+	&& expect_token(TOKEN_LPAREN) && parse_arguments() 
+	&& expect_token(TOKEN_RPAREN);
+}
+
+int parse_arguments() {
+	token_t t;
+	int parsed;
+
+	if ((parsed = ((t = scan_token(fp)) == TOKEN_ID))) {
+		while (((t = scan_token(fp)) == TOKEN_COMMA) 
+		&& parsed) {
+			parsed = expect_token(TOKEN_ID);
+		}
+		putback_token(t);
+
+		return parsed;
+	}
+	putback_token(t);
+
+	return 1;
 }
 
 int parse_T_prime() {

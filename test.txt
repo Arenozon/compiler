@@ -4,8 +4,8 @@ func hello(i64 x, i64 y) {
 		x = y;
 	} elif (x >= y) {
 		x = x - 1;
-	} elif (x <= y) {
-		x = x + 1;
+	} elif (x <= y + $hotdog()) {
+		x = x + 1 - $apple();
 	} else {
 		x = 0;
 	}
@@ -13,4 +13,6 @@ func hello(i64 x, i64 y) {
 
 while (something != something) {
 	i64 somethingelse;
+
+	$apple(x, y);
 }

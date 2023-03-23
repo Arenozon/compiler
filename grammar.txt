@@ -1,6 +1,7 @@
 program = statements ;
 statements = statement {statement} ;
-statement = declaration | assignment | definition | conditional ;
+statement = declaration | assignment | definition | conditional 
+	expression ";" ;
 loop = "while" "(" condition ")" block ;
 conditional = "if" "(" condition ")" block {"elif" "(" condition ")" block} ["else" block] ;
 condition = expression logic expression ;
@@ -20,7 +21,7 @@ factor = "(" expression ")" | id | int | call ;
 call = "$" id "(" arguments ")" ;
 arguments = id {"," id} | epsilon ;
 
-func main() {
+func i64 main() {
 	i64 x;
 
 	x = 0;
