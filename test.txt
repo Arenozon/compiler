@@ -1,5 +1,5 @@
 hello = 1;
-func hello(i64 x, i64 y) {
+func i64 hello(i64 x, i64 y) {
 	if (x == y) {
 		x = y;
 	} elif (x >= y) {
@@ -9,10 +9,14 @@ func hello(i64 x, i64 y) {
 	} else {
 		x = 0;
 	}
+
+	return x;
 }
 
 while (something != something) {
 	i64 somethingelse;
 
 	$apple(x, y);
+
+	return $apple(x, y) + something;
 }

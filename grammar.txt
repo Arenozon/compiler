@@ -1,12 +1,13 @@
 program = statements ;
 statements = statement {statement} ;
 statement = declaration | assignment | definition | conditional 
-	expression ";" ;
+	expression ";" | ret ;
+return = "return" expression ";" ;
 loop = "while" "(" condition ")" block ;
 conditional = "if" "(" condition ")" block {"elif" "(" condition ")" block} ["else" block] ;
 condition = expression logic expression ;
 logic = "&&" | "||" | "==" | "!=" | ">" | "<" | ">=" | "<=" ;
-definition = "func" id "(" parameters ")" block ;
+definition = "func" type id "(" parameters ")" block ;
 parameters = parameter {"," parameter} | epsilon ;
 parameter = type id ;
 block = "{" statements "}" ;
