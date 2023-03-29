@@ -1,7 +1,7 @@
 program = statements ;
 statements = statement {statement} ;
 statement = declaration | assignment | definition | conditional 
-	expression ";" | ret ;
+	| loop | expression ";" | return ;
 return = "return" expression ";" ;
 loop = "while" "(" condition ")" block ;
 conditional = "if" "(" condition ")" block {"elif" "(" condition ")" block} ["else" block] ;
@@ -24,6 +24,7 @@ arguments = id {"," id} | epsilon ;
 
 func i64 main() {
 	i64 x;
+	//i64 y = 2;
 
 	x = 0;
 
