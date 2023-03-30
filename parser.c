@@ -24,7 +24,7 @@ static int parse_call(struct token_stream *stream, struct call *call);
 static int parse_arguments(struct token_stream *stream, struct arg *args);
 static int parse_T_prime(struct token_stream *stream, struct term_p *term);
 
-static int expect_token(struct token_stream *ts, token_t expected_type) {
+static int expect_optional_token(struct token_stream *ts, token_t expected_type) {
 	struct token *new_token = read_token(ts);
 
 	if (new_token->token_type == expected_type) {
@@ -37,10 +37,25 @@ static int expect_token(struct token_stream *ts, token_t expected_type) {
 	}
 }
 
+static int expect_mandatory_token(struct token_stream *ts, token_t expected_type) {
+	struct token *new_token = read_token(ts);
+
+	if (new_token->token_type == expected_type) {
+		free(new_token);
+		return 1;
+	}
+	else {
+		fprintf(stderr, "Parse error: unexpected token on line %d\n", 
+				new_token->line);
+		putback_token(ts, new_token);
+		return 0;
+	}
+}
+
 int parse_P(struct token_stream *ts) {
 	struct prog *prog = create_prog(malloc(sizeof(struct stmt_s*)));
 	
-	return parse_statements(ts, prog->stmts) && expect_token(ts, TOKEN_EOF);
+	return parse_statements(ts, prog->stmts) && expect_mandatory_token(ts, TOKEN_EOF);
 }
 
 static int parse_statements(struct token_stream *ts, struct stmt_s *curr) {
@@ -101,8 +116,15 @@ int parse_statement(struct token_stream *ts, struct stmt_s *stmt) {
 		putback_token(ts, t);
 		stmt = create_stmt(STMT_EXPR, malloc(sizeof(struct expr*)), NULL);
 
-		return parse_E(ts, stmt->stmt->expr) 
-		&& expect_token(ts, TOKEN_SEMI_COLON);
+		if (!parse_E(ts, stmt->stmt->expr))
+			return 0;
+		if (!expect_mandatory_token(ts, TOKEN_SEMI_COLON)) {
+			fprintf(stderr, "Parse error in parse_statement\n");
+
+			return 0;
+		}
+
+		return 1;
 	} else if (t_type == TOKEN_RET) {
 		putback_token(ts, t);
 		stmt = create_stmt(STMT_RET, malloc(sizeof(struct ret*)), NULL);
@@ -119,12 +141,44 @@ int parse_statement(struct token_stream *ts, struct stmt_s *stmt) {
 static int parse_return(struct token_stream *ts, struct ret *ret) {
 	ret = create_ret(NULL);
 
-	return expect_token(ts, TOKEN_RET) && parse_E(ts, ret->expr) 
-	&& expect_token(ts, TOKEN_SEMI_COLON);
+	if (!expect_mandatory_token(ts, TOKEN_RET)) {
+		fprintf(stderr, "Parse error in parse_return: expected \'return\'\n");
+		
+		return 0;
+	}
+	if (!parse_E(ts, ret->expr)) {
+		return 0;
+	}
+	if (!expect_mandatory_token(ts, TOKEN_SEMI_COLON)) {
+		fprintf(stderr, "Parse error in parse_return: expected a semi colon\n");
+
+		return 0;
+	}
+
+	return 1;
 }
 
 static int parse_loop(struct token_stream *ts, struct loop *loop) {
-	return expect_token(ts, TOKEN_WHILE) && expect_token(ts, TOKEN_LPAREN) && parse_condition(ts, loop->cond) & expect_token(ts, TOKEN_RPAREN) && parse_block(ts, loop->block);
+	loop = create_loop(NULL, NULL);
+	if (!expect_mandatory_token(ts, TOKEN_WHILE)) {
+		fprintf(stderr, "Parse error in parse_loop: expected \'while\'\n");
+
+		return 0;
+	}
+	if (!expect_mandatory_token(ts, TOKEN_LPAREN)) {
+		fprintf(stderr, "Parse error in parse_loop: expected \'(\'\n");
+
+		return 0;
+	}
+	if (!parse_condition(ts, loop->cond))
+		return 0;
+	if (!expect_mandatory_token(ts, TOKEN_RPAREN)) {
+		fprintf(stderr, "Parse error in parse_loop: expected \')\'\n");
+
+		return 0;
+	}
+
+	return parse_block(ts, loop->block);
 }
 
 static int parse_conditional(struct token_stream *ts, struct if_stmt *if_stmt) {
@@ -133,13 +187,12 @@ static int parse_conditional(struct token_stream *ts, struct if_stmt *if_stmt) {
 	int parsed;
 	struct elif_stmt *curr;
 
-	if ((parsed = (expect_token(ts, TOKEN_IF) && expect_token(ts, TOKEN_LPAREN) && parse_condition(ts, if_stmt->cond) && expect_token(ts, TOKEN_RPAREN)
-	&& parse_block(ts, if_stmt->block)))) {
+	if ((parsed = (expect_mandatory_token(ts, TOKEN_IF) && expect_mandatory_token(ts, TOKEN_LPAREN) && parse_condition(ts, if_stmt->cond) && expect_mandatory_token(ts, TOKEN_RPAREN) && parse_block(ts, if_stmt->block)))) {
 		curr = if_stmt->elif_stmt;
 		curr = malloc(sizeof(*curr));
 		while ((t_type = ((t = read_token(ts))->token_type)) == TOKEN_ELIF && parsed) {
-			parsed = (expect_token(ts, TOKEN_LPAREN) && parse_condition(ts, curr->cond) 
-				&& expect_token(ts, TOKEN_RPAREN)) && parse_block(ts, curr->block);
+			parsed = (expect_mandatory_token(ts, TOKEN_LPAREN) && parse_condition(ts, curr->cond) 
+				&& expect_mandatory_token(ts, TOKEN_RPAREN)) && parse_block(ts, curr->block);
 			curr = curr->next;
 			curr = malloc(sizeof(*curr));
 			free(t);
@@ -228,7 +281,7 @@ static int parse_declaration(struct token_stream *ts, struct decl *decl) {
 	decl = create_decl(name, type);
 	free(name);
 
-	return expect_token(ts, TOKEN_SEMI_COLON);
+	return expect_mandatory_token(ts, TOKEN_SEMI_COLON);
 }
 
 int parse_assignment(struct token_stream *ts, struct assign *assign) {
@@ -248,7 +301,7 @@ int parse_assignment(struct token_stream *ts, struct assign *assign) {
 	free(name);
 	free(t);
 	
-	return expect_token(ts, TOKEN_ASSIGN) && parse_E(ts, assign->expr) && expect_token(ts, TOKEN_SEMI_COLON);
+	return expect_mandatory_token(ts, TOKEN_ASSIGN) && parse_E(ts, assign->expr) && expect_mandatory_token(ts, TOKEN_SEMI_COLON);
 }
 
 int parse_definition(struct token_stream *ts, struct def *def) {
@@ -256,7 +309,7 @@ int parse_definition(struct token_stream *ts, struct def *def) {
 	struct token *t;
 	char *name;
 
-	if (!expect_token(ts, TOKEN_FUNC))
+	if (!expect_mandatory_token(ts, TOKEN_FUNC))
 		return 0;
 
 	t = read_token(ts);
@@ -282,8 +335,8 @@ int parse_definition(struct token_stream *ts, struct def *def) {
 
 	def = create_def(type, name, malloc(sizeof(struct param*)), malloc(sizeof(struct stmt_s*)));
 	
-	return expect_token(ts, TOKEN_LPAREN) && parse_parameters(ts, def->params) 
-	&& expect_token(ts, TOKEN_RPAREN) && parse_block(ts, def->block);
+	return expect_mandatory_token(ts, TOKEN_LPAREN) && parse_parameters(ts, def->params) 
+	&& expect_mandatory_token(ts, TOKEN_RPAREN) && parse_block(ts, def->block);
 }
 
 int parse_parameter(struct token_stream *ts, struct param *param) {
@@ -349,7 +402,7 @@ int parse_parameters(struct token_stream *ts, struct param *params) {
 }
 
 int parse_block(struct token_stream *ts, struct stmt_s *block) {
-	return expect_token(ts, TOKEN_LBRACE) && parse_statements(ts, block) && expect_token(ts, TOKEN_RBRACE);
+	return expect_mandatory_token(ts, TOKEN_LBRACE) && parse_statements(ts, block) && expect_mandatory_token(ts, TOKEN_RBRACE);
 }
 
 int parse_E(struct token_stream *ts, struct expr *expr) {
@@ -385,7 +438,7 @@ int parse_F(struct token_stream *ts, union factor *fac) {
 		case TOKEN_LPAREN:
 			free(t);
 
-			return parse_E(ts, fac->expr) && expect_token(ts, TOKEN_RPAREN);
+			return parse_E(ts, fac->expr) && expect_mandatory_token(ts, TOKEN_RPAREN);
 		case TOKEN_INT:
 			fac->num = t->value;
 			free(t);
@@ -412,10 +465,10 @@ int parse_F(struct token_stream *ts, union factor *fac) {
 
 int parse_call(struct token_stream *ts, struct call *func) {
 	char *name;
-	struct token *t = read_token(ts);
+	struct token *t;
 
-	if (!expect_token(ts, TOKEN_CALL)) {
-		fprintf(stderr, "Parse error: unexpected token on line %d\n", t->line);
+	if (!expect_mandatory_token(ts, TOKEN_CALL)) {
+		fprintf(stderr, "Parse error in parse_call\n");
 		free(t);
 
 		return 0;
@@ -433,7 +486,7 @@ int parse_call(struct token_stream *ts, struct call *func) {
 		return 0;
 	}
 
-	return expect_token(ts, TOKEN_LPAREN) && parse_arguments(ts, func->args) && expect_token(ts, TOKEN_RPAREN);
+	return expect_mandatory_token(ts, TOKEN_LPAREN) && parse_arguments(ts, func->args) && expect_mandatory_token(ts, TOKEN_RPAREN);
 }
 
 int parse_arguments(struct token_stream *ts, struct arg *args) {

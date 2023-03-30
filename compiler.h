@@ -193,6 +193,7 @@ struct token *read_token(struct token_stream *top);
 void putback_token(struct token_stream *top, 
 		   struct token *token);
 int scan_tokens(FILE *fp, struct token_stream *ts);
+void print_stream(struct token_stream *stream);
 int parse_P(struct token_stream *stream);
 
 struct prog *create_prog(struct stmt_s *stmts);

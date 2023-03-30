@@ -225,7 +225,6 @@ next_token:
 					t->token_type = TOKEN_ID;
 					t->name = word;
 					enter_token(ts, t);
-					free(word);
 					goto next_token;
 				}
 			}
@@ -250,4 +249,29 @@ void putback_token(struct token_stream *top, struct token *token) {
 	new->token = token;
 	top = new;
 	new->next = temp;
+}
+
+void print_stream(struct token_stream *ts) {
+	struct token_stream *temp = ts;
+
+	while (temp->token->token_type != TOKEN_EOF) {
+		switch(temp->token->token_type) {
+			case TOKEN_INT:
+				printf("Token type: %d\nValue: %d\nLine: %d\n", temp->token->token_type, temp->token->value, temp->token->line);
+				break;
+			case TOKEN_ID:
+				printf("Token type: %d\nName: %s\nLine: %d\n", temp->token->token_type, temp->token->name, temp->token->line);
+				break;
+			case TOKEN_TYPE:
+				printf("Token type: %d\nType: %d\nLine: %d\n", temp->token->token_type, temp->token->type, temp->token->line);
+				break;
+			default:
+				printf("Token type: %d\nLine: %d\n", temp->token->token_type, temp->token->line);
+				break;
+		}
+		temp = temp->next;
+	}
+	printf("Token type: %d\nLine: %d\n", temp->token->token_type, temp->token->line);
+
+	return;
 }
