@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
 	if (parse_P(&top))
 		printf("Successfully parsed\n");
 	else {
-		fprintf(stderr, "Parsing failed\n");
+		fprintf(stderr, "Parsing failed on line %d\n", top->token->line);
 		fclose(fp);
 
 		return 1;
