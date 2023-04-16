@@ -2,11 +2,7 @@
 #include <string.h>
 #include "compiler.h"
 
-static void enter_token(struct token_stream *bot, 
-		 struct token *token);
-static int isLetter(char c);
-static int isNumber(char c);
-
+// Creates a token stream and initialises the fields to NULL
 struct token_stream *init_stream() {
 	struct token_stream *ts = malloc(sizeof(*ts));
 	ts->token = NULL;
@@ -15,16 +11,28 @@ struct token_stream *init_stream() {
 	return ts;
 }
 
-static void enter_token(struct token_stream *bot, struct token *token) {
-	if (bot->token == NULL) {
-		bot->token = token;
-	} else {
-		struct token_stream *new = malloc(sizeof(*new));
-		new->token = token;
-		new->next = NULL;
-		bot->next = new;
-		bot = new;
+static struct token *create_token() {
+	struct token *t = malloc(sizeof(struct token));
+	t->type = 0;
+	t->line = 0;
+	t->name = NULL;
+	t->value = 0;
+	t->token_type = 0;
+
+	return t;
+}
+
+// Enter a token into the token stream
+static void enter_token(struct token_stream **bot, struct token *token) {
+	if ((*bot)->token == NULL) {
+		(*bot)->token = token;
+		return;
 	}
+	struct token_stream *new = malloc(sizeof(struct token_stream));
+	new->token = token;
+	new->next = NULL;
+	(*bot)->next = new;
+	(*bot) = new;
 }
 
 static int isNumber(char c) {
@@ -35,7 +43,16 @@ static int isLetter(char c) {
 	return ((c >= 65 && c <= 90) || (c >= 97 && c <= 122));
 }
 
-int scan_tokens(FILE *fp, struct token_stream *ts) {
+void free_token(struct token *t) {
+	if (t->name) {
+		free(t->name);
+	}
+	free(t);
+}
+
+/* Goes through the source file and converts the characters into tokens. 
+ * Populates the token stream with said tokens. */
+int scan_tokens(FILE *fp, struct token_stream **ts) {
 	char c;
 	int line;
 
@@ -43,7 +60,7 @@ int scan_tokens(FILE *fp, struct token_stream *ts) {
 
 next_token:
 	while(1) {
-		struct token *t = malloc(sizeof(*t));
+		struct token *t = create_token();
 		do {
 			t->line = line;
 			c = fgetc(fp);
@@ -236,21 +253,23 @@ next_token:
 	}
 }
 
-struct token *read_token(struct token_stream *top) {
-	struct token *token = top->token;
-	top = top->next;
+struct token *read_token(struct token_stream **top) {
+	struct token *token = (*top)->token;
+	(*top) = (*top)->next;
 
 	return token;
 }
 
-void putback_token(struct token_stream *top, struct token *token) {
-	struct token_stream *new = malloc(sizeof(*new));
-	struct token_stream *temp = top;
+// Put a token back onto the top of the token stream
+void putback_token(struct token_stream **top, struct token *token) {
+	struct token_stream *new = malloc(sizeof(struct token_stream));
+	struct token_stream *temp = *top;
 	new->token = token;
-	top = new;
-	new->next = temp;
+	*top = new;
+	(*top)->next = temp;
 }
 
+// Print the token stream to console
 void print_stream(struct token_stream *ts) {
 	struct token_stream *temp = ts;
 

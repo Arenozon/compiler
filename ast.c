@@ -2,20 +2,49 @@
 #include "compiler.h"
 
 struct prog *create_prog(struct stmt_s *stmts) {
-	struct prog *prog = malloc(sizeof(*prog));
+	struct prog *prog = malloc(sizeof(struct prog));
 
 	prog->stmts = stmts;
 
 	return prog;
 }
 
-struct stmt_s *create_stmt(stmt_t kind, union stmt_u *stmt, 
-			struct stmt_s *next) {
-	struct stmt_s *s = malloc(sizeof(*s));
-	
+struct stmt_s *create_stmt(stmt_t kind, struct stmt_s *next) {
+	struct stmt_s *s = malloc(sizeof(struct stmt_s));
+
 	s->kind = kind;
-	s->stmt = stmt;
+	s->decl = NULL;
+	s->def = NULL;
+	s->ret = NULL;
+	s->expr = NULL;
+	s->loop = NULL;
+	s->assign = NULL;
+	s->if_stmt = NULL;
 	s->next = next;
+
+	switch(kind) {
+		case STMT_DECL:
+			s->decl = malloc(sizeof(struct decl));
+			break;
+		case STMT_ASSIGN:
+			s->assign = malloc(sizeof(struct assign));
+			break;
+		case STMT_DEF:
+			s->def = malloc(sizeof(struct def));
+			break;
+		case STMT_COND:
+			s->if_stmt = malloc(sizeof(struct if_stmt));
+			break;
+		case STMT_LOOP:
+			s->loop = malloc(sizeof(struct loop));
+			break;
+		case STMT_EXPR:
+			s->expr = malloc(sizeof(struct expr));
+			break;
+		case STMT_RET:
+			s->ret = malloc(sizeof(struct ret));
+			break;
+	}
 
 	return s;
 }
@@ -100,8 +129,7 @@ struct param *create_param(type_t type, char *name,
 	struct param *p = malloc(sizeof(*p));
 
 	p->type = type;
-	p->id = malloc(sizeof(*name));
-	*(p->id) = *name;
+	p->id = name;
 	p->next = next;
 
 	return p;
@@ -110,8 +138,7 @@ struct param *create_param(type_t type, char *name,
 struct arg *create_arg(char *name, struct arg *next) {
 	struct arg *a = malloc(sizeof(*a));
 
-	a->id = malloc(sizeof(*name));
-	*(a->id) = *name;
+	a->id = name;
 	a->next = next;
 
 	return a;

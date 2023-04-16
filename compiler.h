@@ -78,7 +78,12 @@ typedef enum {
 	OP_LE
 } oper_t;
 
-union stmt_u {
+struct prog {
+	struct stmt_s *stmts;
+};
+
+struct stmt_s {
+	stmt_t kind;
 	struct decl *decl;
 	struct assign *assign;
 	struct def *def;
@@ -86,15 +91,6 @@ union stmt_u {
 	struct loop *loop;
 	struct expr *expr;
 	struct ret *ret;
-};
-
-struct prog {
-	struct stmt_s *stmts;
-};
-
-struct stmt_s {
-	stmt_t kind;
-	union stmt_u *stmt;
 	struct stmt_s *next;
 };
 
@@ -189,16 +185,16 @@ struct arg {
 };
 
 struct token_stream *init_stream();
-struct token *read_token(struct token_stream *top);
-void putback_token(struct token_stream *top, 
+struct token *read_token(struct token_stream **top);
+void putback_token(struct token_stream **top, 
 		   struct token *token);
-int scan_tokens(FILE *fp, struct token_stream *ts);
+void free_token(struct token *token);
+int scan_tokens(FILE *fp, struct token_stream **ts);
 void print_stream(struct token_stream *stream);
-int parse_P(struct token_stream *stream);
+int parse_P(struct token_stream **stream);
 
 struct prog *create_prog(struct stmt_s *stmts);
-struct stmt_s *create_stmt(stmt_t kind, union stmt_u *stmt, 
-			   struct stmt_s *next);
+struct stmt_s *create_stmt(stmt_t kind, struct stmt_s *next);
 struct decl *create_decl(char *name, type_t type);
 struct assign *create_assign(char *name, struct expr *expr);
 struct def *create_def(type_t type, char *name, 

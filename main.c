@@ -10,15 +10,14 @@ int main(int argc, char *argv[]) {
 	/* scan_tokens is passed the bot pointer so that the bot 
 	 * pointer is updated to follow the latest token, but 
 	 * the top pointer continues to point to the first token */
-	if (scan_tokens(fp, bot)) {
+	if (scan_tokens(fp, &bot)) {
 		fprintf(stderr, "Scanning failed on line %d\n", bot->token->line);
 		fclose(fp);
 
 		return 1;
 	}
 	printf("Scanning succeeded\n");
-	print_stream(top);
-	if (parse_P(top))
+	if (parse_P(&top))
 		printf("Successfully parsed\n");
 	else {
 		fprintf(stderr, "Parsing failed\n");
