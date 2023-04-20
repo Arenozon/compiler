@@ -11,6 +11,7 @@ struct token_stream *init_stream() {
 	return ts;
 }
 
+// Creates a token and initialises its fields to default values (0 or NULL)
 static struct token *create_token() {
 	struct token *t = malloc(sizeof(struct token));
 	t->type = 0;
@@ -54,13 +55,12 @@ void free_token(struct token *t) {
  * Populates the token stream with said tokens. */
 int scan_tokens(FILE *fp, struct token_stream **ts) {
 	char c;
-	int line;
-
-	line = 1;
+	struct token *t;
+	int line = 1;
 
 next_token:
 	while(1) {
-		struct token *t = create_token();
+		t = create_token();
 		do {
 			t->line = line;
 			c = fgetc(fp);
@@ -249,7 +249,7 @@ next_token:
 		
 		t->token_type = ERROR;
 		enter_token(ts, t);
-		return 1;
+		return 0;
 	}
 }
 
@@ -291,6 +291,4 @@ void print_stream(struct token_stream *ts) {
 		temp = temp->next;
 	}
 	printf("Token type: %d\nLine: %d\n", temp->token->token_type, temp->token->line);
-
-	return;
 }
