@@ -18,3 +18,8 @@ struct HashTable {
 	int size;
 	int count;
 };
+
+struct HashTable *create_table(int size);
+void free_table(struct HashTable *table);
+void insert_symbol(struct HashTable *table, struct symbol *symbol);
+struct symbol *ht_search(struct HashTable *table, const char *name);

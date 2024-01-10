@@ -1,10 +1,12 @@
 #include <stdlib.h>
 #include <string.h>
-#include "semantic_analyser.h"
+#include "symbol.h"
 
-// This is an implementation of a hash function I found on Wikipedia, allegedly 31 was used by K & R
-// Takes in a string and converts it to an unsigned int, with the hopes that most strings will produce unique hashes
-static unsigned int stringHash(char *string, int size)
+// This is an implementation of a hash function I found on Wikipedia, allegedly
+// 31 was used by K & R
+// Takes in a string and converts it to an unsigned int, with the hopes that 
+// most strings will produce unique hashes
+static unsigned int stringHash(const char *string, int size)
 {
 	unsigned int h = 0;
 	
@@ -50,8 +52,7 @@ void insert_symbol(struct HashTable *table, struct symbol *symbol)
 		if (table->count == table->size)
 		{
 			printf("Insert Error: Hash Table is full\n");
-			
-			return;
+			exit(EXIT_FAILURE);
 		}
 
 		table->symbols[index] = symbol;
@@ -70,8 +71,7 @@ void insert_symbol(struct HashTable *table, struct symbol *symbol)
 	}
 }
 
-
-struct symbol *ht_search(struct HashTable *table, char *name)
+struct symbol *ht_search(struct HashTable *table, const char *name)
 {
 	int index = stringHash(name, table->size);
 	struct symbol *symbol = table->symbols[index];
