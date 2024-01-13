@@ -1,3 +1,6 @@
+#ifndef SYMBOL_H
+#define SYMBOL_H
+
 #include "compiler.h"
 
 typedef enum {
@@ -14,12 +17,15 @@ struct symbol {
 };
 
 struct HashTable {
-	struct symbol **symbols;
+	struct LinkedList **symbols;
 	int size;
 	int count;
 };
 
+struct symbol *create_symbol(symbol_t kind, type_t type, char *name);
 struct HashTable *create_table(int size);
 void free_table(struct HashTable *table);
 void insert_symbol(struct HashTable *table, struct symbol *symbol);
 struct symbol *ht_search(struct HashTable *table, const char *name);
+
+#endif

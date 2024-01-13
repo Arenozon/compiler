@@ -1,3 +1,6 @@
+#ifndef COMPILER_H
+#define COMPILER_H
+
 #include <stdio.h>
 
 typedef enum {
@@ -97,6 +100,7 @@ struct stmt_s {
 struct decl {
 	char *name;
 	type_t type;
+	struct symbol *symbol;
 };
 
 struct assign {
@@ -213,3 +217,5 @@ struct param *create_param(type_t type, char *name, struct param *next);
 struct arg *create_arg(char *name, struct arg *next);
 struct term_p *create_term_p(oper_t op, union factor *fac, struct term_p *next);
 struct ret *create_ret(struct expr *expr);
+
+#endif
