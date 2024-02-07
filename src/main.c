@@ -1,4 +1,5 @@
 #include "compiler.h"
+#include "ast.h"
 #include "semantic_analyser.h"
 
 int main(int argc, char *argv[])
@@ -8,6 +9,10 @@ int main(int argc, char *argv[])
 	struct token_stream *bot = top;				// bot pointer points to the last token on the stream
 	struct prog *ast;
 	
+	#ifdef DEBUG
+	printf("Debug mode\n");
+	#endif
+
 	/* scan_tokens is passed the bot pointer so that the bot 
 	 * pointer is updated to follow the latest token, but 
 	 * the top pointer continues to point to the first token */
@@ -30,6 +35,10 @@ int main(int argc, char *argv[])
 
 		return 1;
 	}
+
+	#ifdef DEBUG
+	print_tree(ast);
+	#endif
 
 	prog_resolve(ast);
 	printf("Semantic analysis succeeded\n");

@@ -1,10 +1,71 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include "compiler.h"
 
-/*void print_decl(struct decl *d);
-
-void print_stmts(struct stmt_s *s)
+#ifdef DEBUG
+static void print_decl(struct decl *d)
 {
+	FILE *ast_debug;
+
+	ast_debug = fopen("ast_debug.txt", "w");
+	fprintf(ast_debug, "decl --- %p\n", d);
+}
+
+static void print_assign(struct assign *a)
+{
+	FILE *ast_debug;
+
+	ast_debug = fopen("ast_debug.txt", "w");
+	fprintf(ast_debug, "assign --- %p\n", a);
+}
+
+static void print_def(struct def *d)
+{
+	FILE *ast_debug;
+
+	ast_debug = fopen("ast_debug.txt", "w");
+	fprintf(ast_debug, "def --- %p\n", d);
+}
+
+static void print_if(struct if_stmt *i)
+{
+	FILE *ast_debug;
+
+	ast_debug = fopen("ast_debug.txt", "w");
+	fprintf(ast_debug, "if --- %p\n", i);
+}
+
+static void print_loop(struct loop *l)
+{
+	FILE *ast_debug;
+
+	ast_debug = fopen("ast_debug.txt", "w");
+	fprintf(ast_debug, "loop --- %p\n", l);
+}
+
+static void print_expr(struct expr *e)
+{
+	FILE *ast_debug;
+
+	ast_debug = fopen("ast_debug.txt", "w");
+	fprintf(ast_debug, "expr --- %p\n", e);
+}
+
+static void print_ret(struct ret *r)
+{
+	FILE *ast_debug;
+
+	ast_debug = fopen("ast_debug.txt", "w");
+	fprintf(ast_debug, "ret --- %p\n", r);
+}
+
+static void print_stmts(struct stmt_s *s)
+{
+	FILE *ast_debug;
+
+	ast_debug = fopen("ast_debug.txt", "w");
+	fprintf(ast_debug, "stmts --- %p\n", s);
+
 	switch (s->kind) {
 		case STMT_DECL:
 			print_decl(s->decl);
@@ -27,15 +88,18 @@ void print_stmts(struct stmt_s *s)
 		case STMT_RET:
 			print_ret(s->ret);
 			break;
-		
 	}
 }
 
 void print_tree(struct prog *tree)
 {
+	FILE *ast_debug;
+	ast_debug = fopen("ast_debug.txt", "w");
+	fprintf(ast_debug, "prog --- %p\n", tree);
 	print_stmts(tree->stmts);
 }
-*/
+#endif
+
 struct prog *create_prog(struct stmt_s *stmts) {
 	struct prog *prog = malloc(sizeof(struct prog));
 
