@@ -160,21 +160,22 @@ struct expr_p {
 	struct expr_p *next;
 };
 
-union factor {
+struct factor {
 	struct expr *expr;
 	char *id;
-	int num;
+	int *num;
 	struct call *func;
+	struct symbol *symbol;
 };
 
 struct term {
-	union factor *fac;
+	struct factor *fac;
 	struct term_p *next;
 };
 
 struct term_p {
 	oper_t op;
-	union factor *fac;
+	struct factor *fac;
 	struct term_p *next;
 };
 
@@ -195,7 +196,7 @@ void putback_token(struct token_stream **top,
 void free_token(struct token *token);
 int scan_tokens(FILE *fp, struct token_stream **ts);
 void print_stream(struct token_stream *stream);
-int parse_P(struct token_stream **stream);
+struct prog *parse_P(struct token_stream **stream);
 
 struct prog *create_prog(struct stmt_s *stmts);
 struct stmt_s *create_stmt(stmt_t kind, struct stmt_s *next);
@@ -215,7 +216,8 @@ struct expr_p *create_expr_p(oper_t op, struct term *term,
 			     struct expr_p *next);
 struct param *create_param(type_t type, char *name, struct param *next);
 struct arg *create_arg(char *name, struct arg *next);
-struct term_p *create_term_p(oper_t op, union factor *fac, struct term_p *next);
+struct term_p *create_term_p(oper_t op, struct factor *fac, struct term_p *next);
 struct ret *create_ret(struct expr *expr);
+struct factor *create_factor();
 
 #endif

@@ -3,6 +3,10 @@
 #include "symbol.h"
 #include "scope.h"
 
+void expr_resolve(struct expr *e);
+void term_p_resolve(struct term_p *t);
+void stmt_resolve(struct stmt_s *s);
+
 void decl_resolve(struct decl *d)
 {
 	if (!d) return;
@@ -14,22 +18,124 @@ void decl_resolve(struct decl *d)
 	scope_bind(d->name, d->symbol);
 }
 
+void func_resolve(struct call *c)
+{
+	// Placeholder, still have to implement function symbol table
+}
+
+void factor_resolve(struct factor *f)
+{
+	if (!f) return;
+
+	if (f->expr) {
+		expr_resolve(f->expr);
+		return;
+	}
+	if (f->id) {
+		struct symbol *s;
+		if((s = scope_lookup(f->id)))
+			f->symbol = s;
+		else {
+			fprintf(stderr, "Uninitialised variable used: %s\n", f->id);
+			exit(EXIT_FAILURE);
+		}
+		return;
+	}
+	if (f->func) 
+		func_resolve(f->func);
+	if (f->num)
+		return;
+	else
+		fprintf(stderr, "Empty factor\n");
+}
+
+void term_resolve(struct term *t)
+{
+	if (!t) return;
+
+	factor_resolve(t->fac);
+	term_p_resolve(t->next);
+}
+
+void term_p_resolve(struct term_p *t)
+{
+	if (!t) return;
+
+	factor_resolve(t->fac);
+	term_p_resolve(t->next);
+}
+
+void expr_p_resolve(struct expr_p *e)
+{
+	if (!e) return;
+
+	term_resolve(e->term);
+	expr_p_resolve(e->next);
+}
+
+void expr_resolve(struct expr *e)
+{
+	if (!e) return;
+
+	term_resolve(e->term);
+	expr_p_resolve(e->next);
+}
+
 void assign_resolve(struct assign *a)
 {
 	if (!a) return;
 
-
+	expr_resolve(a->expr);
 }
 
-void def_resolve(struct def *d);
+void def_resolve(struct def *d)
+{
+	if (!d) return;
 
-void cond_resolve(struct if_stmt *c);
+	// Placeholder for function lookup
+}
 
-void loop_resolve(struct loop *l);
+void cond_resolve(struct cond *c)
+{
+	if (!c) return;
 
-void expr_resolve(struct expr *e);
+	expr_resolve(c->expr1);
+	expr_resolve(c->expr2);
+}
 
-void ret_resolve(struct ret *r);
+void elif_resolve(struct elif_stmt *e)
+{
+	if (!e) return;
+
+	cond_resolve(e->cond);
+	stmt_resolve(e->block);
+	elif_resolve(e->next);
+}
+
+void if_resolve(struct if_stmt *i)
+{
+	if (!i) return;
+
+	cond_resolve(i->cond);
+	stmt_resolve(i->block);
+	elif_resolve(i->elif_stmt);
+	stmt_resolve(i->else_block);
+}
+
+void loop_resolve(struct loop *l)
+{
+	if (!l) return;
+
+	cond_resolve(l->cond);
+	stmt_resolve(l->block);
+}
+
+void ret_resolve(struct ret *r)
+{
+	if (!r) return;
+
+	expr_resolve(r->expr);
+}
 
 void stmt_resolve(struct stmt_s *s)
 {
@@ -49,7 +155,7 @@ void stmt_resolve(struct stmt_s *s)
 			break;
 
 		case STMT_COND:
-			cond_resolve(s->if_stmt);
+			if_resolve(s->if_stmt);
 			break;
 
 		case STMT_LOOP:

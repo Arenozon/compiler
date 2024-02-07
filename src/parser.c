@@ -19,7 +19,7 @@ static int parse_block(struct token_stream **stream, struct stmt_s **stmt);
 static int parse_E(struct token_stream **stream, struct expr **expr);
 static int parse_T(struct token_stream **stream, struct term **term);
 static int parse_E_prime(struct token_stream **stream, struct expr_p **expr);
-static int parse_F(struct token_stream **stream, union factor **fac);
+static int parse_F(struct token_stream **stream, struct factor **fac);
 static int parse_call(struct token_stream **stream, struct call **call);
 static int parse_arguments(struct token_stream **stream, struct arg **args);
 static int parse_T_prime(struct token_stream **stream, struct term_p **term);
@@ -52,10 +52,13 @@ static int expect_mandatory_token(struct token_stream **ts, token_t expected_typ
 }
 
 // This is the function called to start the parsing of the whole program
-int parse_P(struct token_stream **ts) {
+struct prog *parse_P(struct token_stream **ts) {
 	struct prog *prog = create_prog(malloc(sizeof(struct stmt_s*)));
 	
-	return parse_statements(ts, &prog->stmts) && expect_mandatory_token(ts, TOKEN_EOF);
+	if (parse_statements(ts, &prog->stmts) && expect_mandatory_token(ts, TOKEN_EOF))
+		return prog;
+
+	return NULL;
 }
 
 static int parse_statements(struct token_stream **ts, struct stmt_s **curr) {
@@ -437,9 +440,9 @@ int parse_E_prime(struct token_stream **ts, struct expr_p **expr) {
 	}
 }
 
-int parse_F(struct token_stream **ts, union factor **fac) {
+int parse_F(struct token_stream **ts, struct factor **fac) {
 	struct token *t = read_token(ts);
-	*fac = malloc(sizeof(**fac));
+	*fac = create_factor();
 
 	switch(t->token_type) {
 		case TOKEN_LPAREN:
@@ -447,7 +450,8 @@ int parse_F(struct token_stream **ts, union factor **fac) {
 
 			return parse_E(ts, &(*fac)->expr) && expect_mandatory_token(ts, TOKEN_RPAREN);
 		case TOKEN_INT:
-			(*fac)->num = t->value;
+			(*fac)->num = malloc(sizeof(int));
+			*((*fac)->num) = t->value;
 			free_token(t);
 			
 			return 1;

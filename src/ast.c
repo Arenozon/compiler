@@ -1,6 +1,41 @@
 #include <stdlib.h>
 #include "compiler.h"
 
+/*void print_decl(struct decl *d);
+
+void print_stmts(struct stmt_s *s)
+{
+	switch (s->kind) {
+		case STMT_DECL:
+			print_decl(s->decl);
+			break;
+		case STMT_ASSIGN:
+			print_assign(s->assign);
+			break;
+		case STMT_DEF:
+			print_def(s->def);
+			break;
+		case STMT_COND:
+			print_if(s->if_stmt);
+			break;
+		case STMT_LOOP:
+			print_loop(s->loop);
+			break;
+		case STMT_EXPR:
+			print_expr(s->expr);
+			break;
+		case STMT_RET:
+			print_ret(s->ret);
+			break;
+		
+	}
+}
+
+void print_tree(struct prog *tree)
+{
+	print_stmts(tree->stmts);
+}
+*/
 struct prog *create_prog(struct stmt_s *stmts) {
 	struct prog *prog = malloc(sizeof(struct prog));
 
@@ -144,7 +179,7 @@ struct arg *create_arg(char *name, struct arg *next) {
 	return a;
 }
 
-struct term_p *create_term_p(oper_t op, union factor *fac, struct term_p *next) {
+struct term_p *create_term_p(oper_t op, struct factor *fac, struct term_p *next) {
 	struct term_p *tp = malloc(sizeof(*tp));
 
 	tp->op = op;
@@ -160,4 +195,17 @@ struct ret *create_ret(struct expr *expr) {
 	r->expr = expr;
 
 	return r;
+}
+
+struct factor *create_factor()
+{
+	struct factor *fac = malloc(sizeof(*fac));
+
+	fac->expr = NULL;
+	fac->id = NULL;
+	fac->num = NULL;
+	fac->func = NULL;
+	fac->symbol = NULL;
+
+	return fac;
 }
