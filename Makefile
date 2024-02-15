@@ -1,39 +1,28 @@
-#Compiler flags
+# Compiler flags
 CC = gcc
+CFLAGS = -Wall -Werror -Wextra -O3 -DNDEBUG
 
-#debug: CFLAGS += -DDEBUG -g -O0 -Wall
+# Project files
+SRCS = src/main.c src/lexer.c src/parser.c src/ast.c src/symbol.c src/scope.c src/semantic_analyser.c
+OBJS = $(SRCS:src/%.c=%.o)
+EXE = compiler
 
-compiler: main.o lexer.o parser.o ast.o symbol.o scope.o semantic_analyser.o
-	$(CC) -g -o compiler main.o lexer.o parser.o ast.o symbol.o scope.o semantic_analyser.o
+# Test files
+TESTS = tests/test.txt tests/test2.txt
 
-test: main.o lexer.o parser.o ast.o symbol.o scope.o semantic_analyser.o tests/test.txt tests/test2.txt
-	$(CC) -g -o compiler main.o lexer.o parser.o ast.o symbol.o scope.o semantic_analyser.o
-	./compiler tests/test2.txt
-	./compiler tests/test.txt
+$(EXE): $(OBJS)
+	$(CC) $(CFLAGS) -o $@ $^
 
-debug: main.o lexer.o parser.o ast.o symbol.o scope.o semantic_analyser.o
-	$(CC) -fsanitize=address -DDEBUG -O0 -g -o compiler main.o lexer.o parser.o ast.o symbol.o scope.o semantic_analyser.o
+test: $(EXE) $(TESTS)
+	./$< tests/test2.txt
+	./$< tests/test.txt
 
-main.o: src/main.c src/lexer.c src/parser.c src/ast.c src/symbol.c src/scope.c src/compiler.h src/scope.h src/semantic_analyser.c src/ast.h
-	$(CC) -g -c src/main.c
+debug: CFLAGS = -Wall -Werror -Wextra -g -O0 -DDEBUG -fsanitize=address
+debug: $(EXE)
 
-lexer.o: src/lexer.c src/compiler.h
-	$(CC) -g -c src/lexer.c
-
-parser.o: src/parser.c src/ast.c src/compiler.h
-	$(CC) -g -c src/parser.c
-
-ast.o: src/ast.c src/compiler.h
-	$(CC) -g -c src/ast.c
-
-symbol.o: src/symbol.c src/compiler.h
-	$(CC) -g -c src/symbol.c
-
-scope.o: src/scope.c src/symbol.h
-	$(CC) -g -c src/scope.c
-
-semantic_analyser.o: src/semantic_analyser.c src/semantic_analyser.h
-	$(CC) -g -c src/semantic_analyser.c
+%.o: src/%.c
+	$(CC) -c $(CFLAGS) -o $@ $<
 
 clean:
 	rm -f *.o
+	rm -f $(EXE)

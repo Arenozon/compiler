@@ -1,1 +1,2 @@
+i64 hello;
 hello = 2;

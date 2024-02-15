@@ -3,90 +3,89 @@
 #include "compiler.h"
 
 #ifdef DEBUG
-static void print_decl(struct decl *d)
+static void print_indentation(FILE *ast_debug, int indentation)
 {
-	FILE *ast_debug;
-
-	ast_debug = fopen("ast_debug.txt", "w");
-	fprintf(ast_debug, "decl --- %p\n", d);
+	for (int i = 0; i < indentation; i++)
+		fprintf(ast_debug, "   ");
 }
 
-static void print_assign(struct assign *a)
+static void print_decl(struct decl *d, FILE *ast_debug, int indentation)
 {
-	FILE *ast_debug;
-
-	ast_debug = fopen("ast_debug.txt", "w");
-	fprintf(ast_debug, "assign --- %p\n", a);
+	indentation++;
+	print_indentation(ast_debug, indentation);
+	fprintf(ast_debug, "|\n---decl %p\n", d);
 }
 
-static void print_def(struct def *d)
+static void print_assign(struct assign *a, FILE *ast_debug, int indentation)
 {
-	FILE *ast_debug;
-
-	ast_debug = fopen("ast_debug.txt", "w");
-	fprintf(ast_debug, "def --- %p\n", d);
+	indentation++;
+	print_indentation(ast_debug, indentation);
+	fprintf(ast_debug, "|\n---assign %p\n", a);
 }
 
-static void print_if(struct if_stmt *i)
+static void print_def(struct def *d, FILE *ast_debug, int indentation)
 {
-	FILE *ast_debug;
-
-	ast_debug = fopen("ast_debug.txt", "w");
-	fprintf(ast_debug, "if --- %p\n", i);
+	indentation++;
+	print_indentation(ast_debug, indentation);
+	fprintf(ast_debug, "|\n---def %p\n", d);
 }
 
-static void print_loop(struct loop *l)
+static void print_if(struct if_stmt *i, FILE *ast_debug, int indentation)
 {
-	FILE *ast_debug;
-
-	ast_debug = fopen("ast_debug.txt", "w");
-	fprintf(ast_debug, "loop --- %p\n", l);
+	indentation++;
+	print_indentation(ast_debug, indentation);
+	fprintf(ast_debug, "|\n---if %p\n", i);
 }
 
-static void print_expr(struct expr *e)
+static void print_loop(struct loop *l, FILE *ast_debug, int indentation)
 {
-	FILE *ast_debug;
-
-	ast_debug = fopen("ast_debug.txt", "w");
-	fprintf(ast_debug, "expr --- %p\n", e);
+	indentation++;
+	print_indentation(ast_debug, indentation);
+	fprintf(ast_debug, "|\n---loop %p\n", l);
 }
 
-static void print_ret(struct ret *r)
+static void print_expr(struct expr *e, FILE *ast_debug, int indentation)
 {
-	FILE *ast_debug;
-
-	ast_debug = fopen("ast_debug.txt", "w");
-	fprintf(ast_debug, "ret --- %p\n", r);
+	indentation++;
+	print_indentation(ast_debug, indentation);
+	fprintf(ast_debug, "|\n---expr %p\n", e);
 }
 
-static void print_stmts(struct stmt_s *s)
+static void print_ret(struct ret *r, FILE *ast_debug, int indentation)
 {
-	FILE *ast_debug;
+	indentation++;
+	print_indentation(ast_debug, indentation);
+	fprintf(ast_debug, "|\n---ret %p\n", r);
+}
 
-	ast_debug = fopen("ast_debug.txt", "w");
-	fprintf(ast_debug, "stmts --- %p\n", s);
+static void print_stmts(struct stmt_s *s, FILE *ast_debug, int indentation)
+{
+	indentation++;
+	print_indentation(ast_debug, indentation);
+
+	fprintf(ast_debug, "|\n---stmts %p\n", s);
 
 	switch (s->kind) {
 		case STMT_DECL:
-			print_decl(s->decl);
+			print_decl(s->decl, ast_debug, indentation);
 			break;
 		case STMT_ASSIGN:
-			print_assign(s->assign);
+			print_assign(s->assign, ast_debug, indentation);
 			break;
 		case STMT_DEF:
-			print_def(s->def);
+			print_def(s->def, ast_debug, indentation);
 			break;
 		case STMT_COND:
-			print_if(s->if_stmt);
+			print_if(s->if_stmt, ast_debug, indentation);
 			break;
 		case STMT_LOOP:
-			print_loop(s->loop);
+			print_loop(s->loop, ast_debug, indentation);
 			break;
 		case STMT_EXPR:
-			print_expr(s->expr);
+			print_expr(s->expr, ast_debug, indentation);
 			break;
 		case STMT_RET:
-			print_ret(s->ret);
+			print_ret(s->ret, ast_debug, indentation);
 			break;
 	}
 }
@@ -94,9 +93,12 @@ static void print_stmts(struct stmt_s *s)
 void print_tree(struct prog *tree)
 {
 	FILE *ast_debug;
+	int indentation = 0;
+
 	ast_debug = fopen("ast_debug.txt", "w");
-	fprintf(ast_debug, "prog --- %p\n", tree);
-	print_stmts(tree->stmts);
+	fprintf(ast_debug, "prog %p\n", tree);
+	print_stmts(tree->stmts, ast_debug, indentation);
+	fclose(ast_debug);
 }
 #endif
 

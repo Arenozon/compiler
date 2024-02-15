@@ -4,6 +4,7 @@
 
 int main(int argc, char *argv[])
 {
+	(void)argc;
 	FILE *fp = fopen(argv[1], "r");
 	struct token_stream *top = init_stream();	// top pointer points to the first token on the stream
 	struct token_stream *bot = top;				// bot pointer points to the last token on the stream

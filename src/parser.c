@@ -24,7 +24,8 @@ static int parse_call(struct token_stream **stream, struct call **call);
 static int parse_arguments(struct token_stream **stream, struct arg **args);
 static int parse_T_prime(struct token_stream **stream, struct term_p **term);
 
-static int expect_optional_token(struct token_stream **ts, token_t expected_type) {
+// Useful, but not currently used. Might come in handy for future grammar changes.
+/* static int expect_optional_token(struct token_stream **ts, token_t expected_type) {
 	struct token *new_token = read_token(ts);
 
 	if (new_token->token_type == expected_type) {
@@ -35,7 +36,7 @@ static int expect_optional_token(struct token_stream **ts, token_t expected_type
 		putback_token(ts, new_token);
 		return 0;
 	}
-}
+} */
 
 static int expect_mandatory_token(struct token_stream **ts, token_t expected_type) {
 	struct token *new_token = read_token(ts);
@@ -474,8 +475,8 @@ int parse_F(struct token_stream **ts, struct factor **fac) {
 	}
 }
 
-int parse_call(struct token_stream **ts, struct call **func) {
-	char *name;
+int parse_call(struct token_stream **ts, struct call **func)
+{
 	struct token *t;
 	*func = malloc(sizeof(struct call));
 
@@ -491,13 +492,16 @@ int parse_call(struct token_stream **ts, struct call **func) {
 		strcpy((*func)->name, t->name);
 		free_token(t);
 	} else {
-		fprintf(stderr, "Parse error in parse_call: unexpected token on line %d\n", t->line);
+		fprintf(stderr, 
+		  "Parse error in parse_call: unexpected token on line %d\n", t->line);
 		free_token(t);
 
 		return 0;
 	}
 
-	return expect_mandatory_token(ts, TOKEN_LPAREN) && parse_arguments(ts, &(*func)->args) && expect_mandatory_token(ts, TOKEN_RPAREN);
+	return expect_mandatory_token(ts, TOKEN_LPAREN) && 
+		parse_arguments(ts, &(*func)->args) && 
+		expect_mandatory_token(ts, TOKEN_RPAREN);
 }
 
 int parse_arguments(struct token_stream **ts, struct arg **args) {

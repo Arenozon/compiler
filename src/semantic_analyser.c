@@ -18,7 +18,7 @@ void decl_resolve(struct decl *d)
 	scope_bind(d->name, d->symbol);
 }
 
-void func_resolve(struct call *c)
+void func_resolve()
 {
 	// Placeholder, still have to implement function symbol table
 }

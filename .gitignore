@@ -2,3 +2,4 @@ compiler
 github.txt
 todo.txt
 *.o
+ast_debug.txt

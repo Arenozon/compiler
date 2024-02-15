@@ -16,7 +16,7 @@ static unsigned int stringHash(const char *string, int size)
 {
 	unsigned int h = 0;
 	
-	for (int i = 0; i < strlen(string); i++)
+	for (int i = 0; (size_t)i < strlen(string); i++)
 		h = (31 * h + string[i]) % size;
 
 	return h;
